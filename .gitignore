@@ -1,0 +1,7 @@
+*.properties
+.settings/
+bin/
+target/
+.classpath
+.mymetadata
+.gitignore

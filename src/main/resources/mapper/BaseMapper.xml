@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+
+<mapper namespace="com.cqut.dao.base.BaseDao">
+  <select id="getModulesByCondition" resultType="map">
+		SELECT
+			a.ModuleCode AS PMODULECODE,
+			a.Url AS pURL,
+			a.ModuleName AS PMODULENAME,
+			a.HasChild AS PHASCHILD,
+			a.ShowMenupage AS PSHOWMENUPAGE,
+			a.ParentID AS PPARENTID,
+			a.Icon as PICON,
+			B.ModuleCode AS CMODULECODE,
+			B.Url AS CURL,
+			B.ModuleName AS CMODULENAME,
+			B.HasChild AS CHASCHILD,
+			B.ShowMenupage AS CSHOWMENUPAGE,
+			B.ParentID AS CPARENTID
+	FROM
+		(
+			SELECT
+				MODULE .ModuleID,
+				MODULE .ModuleCode,
+				MODULE .Url,
+				MODULE .ModuleName,
+				MODULE .HasChild,
+				MODULE .ShowMenupage,
+				MODULE .parentid,
+				MODULE .Icon
+			FROM
+				MODULE
+			WHERE
+				MODULE .HasChild = 1
+		) a
+	LEFT JOIN(
+		SELECT DISTINCT
+			PermissionContent.ModuleID,
+			MODULE .ModuleCode,
+			MODULE .Url,
+			MODULE .ModuleName,
+			MODULE .HasChild,
+			MODULE .ShowMenupage,
+			MODULE .parentid,
+			ACCOUNT.LoginName
+		FROM
+			MODULE,
+			PermissionContent,
+			PermissionAssign,
+			role,
+			RoleAssign,
+			Account
+		WHERE
+			RoleAssign.roleid = Role.roleid
+		AND Account.accountid = RoleAssign.accountid
+		AND PermissionAssign.roleid = Role.roleid
+		AND PermissionAssign.permissionid = PermissionContent.permissionid
+		AND MODULE .moduleid = PermissionContent.moduleid
+	) b ON b.parentid = a.ModuleID
+	WHERE
+		B.LoginName = ${loginName}
+		ORDER BY a.ModuleID
+	</select>
+</mapper>

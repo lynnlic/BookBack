@@ -1,0 +1,482 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cqut.dao.base.SearchDao">
+
+	<select id="searchForeign" resultType="map">
+		select
+		<foreach collection="properties" item="item" index="index"
+			separator=",">
+			${item}
+		</foreach>
+		from ${baseEntity}
+		<if test="joinEntity != null">
+			${joinEntity}
+		</if>
+		<if test="foreignEntity != null">
+			<foreach collection="foreignEntity" item="item" index="index"
+				separator="," open=",">
+				${item}
+			</foreach>
+		</if>
+		<where>
+			<choose>
+				<when test="foreingKey !=null and condition != null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator=" and ">
+						${item}
+					</foreach>
+					and ${condition}
+				</when>
+				<when test="condition != null">
+					${condition}
+				</when>
+				<when test="foreingKey !=null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator="and">
+						${item}
+					</foreach>
+				</when>
+			</choose>
+		</where>
+	</select>
+
+	<select id="getForeignCount" resultType="int">
+		select count(distinct ${primaryKey}) from ${baseEntity}
+		<if test="joinEntity != null">
+			${joinEntity}
+		</if>
+		<if test="foreignEntity != null">
+			<foreach collection="foreignEntity" item="item" index="index"
+				separator="," open=",">
+				${item}
+			</foreach>
+		</if>
+		<where>
+			<choose>
+				<when test="foreingKey !=null and condition != null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator=" and ">
+						${item}
+					</foreach>
+					and ${condition}
+				</when>
+				<when test="condition != null">
+					${condition}
+				</when>
+				<when test="foreingKey !=null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator=" and ">
+						${item}
+					</foreach>
+				</when>
+			</choose>
+		</where>
+	</select>
+	<!-- sqlserver2008支持 -->
+	
+   <select id="searchWithpagingInMssql" resultType="map">
+		select
+		<foreach collection="properties" item="item" index="index"
+			separator=",">
+			${item}
+		</foreach>
+		from ${baseEntity}
+		<if test="joinEntity != null">
+			${joinEntity}
+		</if>
+		<if test="foreignEntity != null">
+			<foreach collection="foreignEntity" item="item" index="index"
+				separator="," open=",">
+				${item}
+			</foreach>
+		</if>
+		<where>
+			<choose>
+				<when test="foreingKey !=null and condition != null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator=" and ">
+						${item}
+					</foreach>
+					and ${condition}
+				</when>
+				<when test="condition != null">
+					${condition}
+				</when>
+				<when test="foreingKey !=null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator=" and ">
+						${item}
+					</foreach>
+				</when>
+			</choose>
+		</where>
+		<if test="groupField != null">
+			group by ${groupField}
+		</if>
+		<if test="orderField != null">
+			order by ${orderField}
+		</if>
+		<if test="sortMode != null">
+			${sortMode}
+		</if>
+		OFFSET ${startIndex} rows FETCH NEXT ${pageNum} ROWS ONLY
+	
+	</select>
+	<!-- sqlserver2014以上 -->
+	<select id="searchWithpagingInMssql_OLD" resultType="map">
+		select
+		<foreach collection="properties" item="item" index="index"
+			separator=",">
+			${item}
+		</foreach>
+		from ${baseEntity}
+		<if test="joinEntity != null">
+			${joinEntity}
+		</if>
+		<if test="foreignEntity != null">
+			<foreach collection="foreignEntity" item="item" index="index"
+				separator="," open=",">
+				${item}
+			</foreach>
+		</if>
+		<where>
+			<choose>
+				<when test="foreingKey !=null and condition != null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator=" and ">
+						${item}
+					</foreach>
+					and ${condition}
+				</when>
+				<when test="condition != null">
+					${condition}
+				</when>
+				<when test="foreingKey !=null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator=" and ">
+						${item}
+					</foreach>
+				</when>
+			</choose>
+		</where>
+		<if test="groupField != null">
+			group by ${groupField}
+		</if>
+		<if test="orderField != null">
+			order by ${orderField}
+		</if>
+		<if test="sortMode != null">
+			${sortMode}
+		</if>
+		OFFSET ${startIndex} rows FETCH NEXT ${pageNum} ROWS ONLY
+	</select>
+
+	<select id="searchOrderByTime" resultType="map">
+		select a.${title1},
+		<if test="title2 != null">
+			${title2}= (
+			stuff(
+			( SELECT
+			';' + b.${title3}+ ':' + CAST(b.${title4}
+			AS VARCHAR(10))
+			FROM
+			(SELECT
+			<foreach collection="properties" item="item" index="index"
+				separator=",">
+				${item}
+			</foreach>
+			FROM
+			${baseEntity}
+			<if test="joinEntity != null">
+				${joinEntity}
+			</if>
+			<where>
+				<choose>
+					<when test="foreingKey !=null and condition != null">
+						<foreach collection="foreingKey" item="item" index="index"
+							separator=" and ">
+							${item}
+						</foreach>
+						and ${condition}
+					</when>
+					<when test="condition != null">
+						${condition}
+					</when>
+					<when test="foreingKey !=null">
+						<foreach collection="foreingKey" item="item" index="index"
+							separator=" and ">
+							${item}
+						</foreach>
+					</when>
+				</choose>
+			</where>
+			<if test="groupField != null">
+				group by ${groupField}
+			</if>
+			) b where b.${title1} = a.${title1} FOR xml path ('')),1,1,''))
+		</if>
+		from (SELECT
+		<foreach collection="properties" item="item" index="index"
+			separator=",">
+			${item}
+		</foreach>
+		FROM ${baseEntity}
+		<if test="joinEntity != null">
+			${joinEntity}
+		</if>
+		<where>
+			<choose>
+				<when test="foreingKey !=null and condition != null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator=" and ">
+						${item}
+					</foreach>
+					and ${condition}
+				</when>
+				<when test="condition != null">
+					${condition}
+				</when>
+				<when test="foreingKey !=null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator=" and ">
+						${item}
+					</foreach>
+				</when>
+			</choose>
+		</where>
+		<if test="groupField != null">
+			group by ${groupField}
+		</if>
+		)a GROUP BY a.${title1}
+	</select>
+
+	<select id="searchWithpagingInMysql" resultType="map">
+		select
+		<foreach collection="properties" item="item" index="index"
+			separator=",">
+			${item}
+		</foreach>
+		from ${baseEntity}
+		<if test="joinEntity != null">
+			${joinEntity}
+		</if>
+		<if test="foreignEntity != null">
+			<foreach collection="foreignEntity" item="item" index="index"
+				separator="," open=",">
+				${item}
+			</foreach>
+		</if>
+		<where>
+			<choose>
+				<when test="foreingKey !=null and condition != null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator=" and ">
+						${item}
+					</foreach>
+					and ${condition}
+				</when>
+				<when test="condition != null">
+					${condition}
+				</when>
+				<when test="foreingKey !=null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator=" and ">
+						${item}
+					</foreach>
+				</when>
+			</choose>
+		</where>
+		<if test="groupField != null">
+			group by #{groupField}
+		</if>
+		<if test="orderField != null">
+			order by ${orderField}
+		</if>
+		<if test="sortMode != null">
+			${sortMode}
+		</if>
+		LIMIT ${(pageNum-1)*startIndex},${startIndex}
+	</select>
+
+	<select id="searchWithpagingInOracle" resultType="map">
+		select * from (select
+		<foreach collection="properties" item="item" index="index"
+			separator="," close=",">
+			${item}
+		</foreach>
+		ROW_NUMBER () OVER (
+		<if test="groupField != null">
+			partition by ${groupField}
+		</if>
+		ORDER BY ${orderField}
+		<if test="sortMode != null">
+			${sortMode}
+		</if>
+		)
+		as ROWNUMBER
+		from ${baseEntity}
+		<if test="joinEntity != null">
+			${joinEntity}
+		</if>
+		<if test="foreignEntity != null">
+			<foreach collection="foreignEntity" item="item" index="index"
+				separator="," open=",">
+				${item}
+			</foreach>
+		</if>
+		<where>
+			<choose>
+				<when test="foreingKey !=null and condition != null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator=" and ">
+						${item}
+					</foreach>
+					and ${condition}
+				</when>
+				<when test="condition != null">
+					${condition}
+				</when>
+				<when test="foreingKey !=null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator=" and ">
+						${item}
+					</foreach>
+				</when>
+			</choose>
+		</where>
+		) p WHERE p.ROWNUMBER BETWEEN ${startIndex} and ${endIndex}
+	</select>
+
+	<select id="searchWithpagingInMysqlNoOrder" resultType="map">
+		select
+		<foreach collection="properties" item="item" index="index"
+			separator=",">
+			${item}
+		</foreach>
+		from ${baseEntity}
+		<if test="joinEntity != null">
+			${joinEntity}
+		</if>
+		<if test="foreignEntity != null">
+			<foreach collection="foreignEntity" item="item" index="index"
+				separator="," open=",">
+				${item}
+			</foreach>
+		</if>
+		<where>
+			<choose>
+				<when test="foreingKey !=null and condition != null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator=" and ">
+						${item}
+					</foreach>
+					and ${condition}
+				</when>
+				<when test="condition != null">
+					${condition}
+				</when>
+				<when test="foreingKey !=null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator=" and ">
+						${item}
+					</foreach>
+				</when>
+			</choose>
+		</where>
+		<if test="sortMode != null">
+			${sortMode}
+		</if>
+		LIMIT ${startIndex},${pageNum}
+	</select>
+
+
+	<select id="searchProperty" resultType="map">
+		select
+		<foreach collection="properties" item="item" index="index"
+			separator=",">
+			${item}
+		</foreach>
+		from ${baseEntity}
+		<if test="joinEntity != null">
+			${joinEntity}
+		</if>
+		<if test="foreignEntity != null">
+			<foreach collection="foreignEntity" item="item" index="index"
+				separator="," open=",">
+				${item}
+			</foreach>
+		</if>
+		<where>
+			<choose>
+				<when test="foreingKey !=null and condition != null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator=" and ">
+						${item}
+					</foreach>
+					and ${condition}
+				</when>
+				<when test="condition != null">
+					${condition}
+				</when>
+				<when test="foreingKey !=null">
+					<foreach collection="foreingKey" item="item" index="index"
+						separator=" and ">
+						${item}
+					</foreach>
+				</when>
+			</choose>
+		</where>
+		<if test="groupField != null">
+			group by ${groupField}
+		</if>
+		<if test="orderField != null">
+			order by ${orderField}
+		</if>
+		<if test="sortMode != null">
+			${sortMode}
+		</if>
+	</select>
+
+	<select id="searchByGroup" resultType="map">
+		select
+		<foreach collection="properties" item="item" index="index"
+			separator=",">
+			${item}
+		</foreach>
+		<if test="expressResult != null">
+			${expressResult}=
+		</if>
+		(stuff(( SELECT
+		<if test="expression != null">
+			${expression}
+		</if>
+		from (
+		select
+		<foreach collection="baseproperties" item="item" index="index"
+			separator=",">
+			${item}
+		</foreach>
+		from ${baseEntity}
+		<if test="joinEntity != null">
+			${joinEntity}
+		</if>
+		)b where
+		<if test="condition != null">
+			${condition}
+		</if>
+		FOR xml path ('')),1,1,''))
+		from (
+		select
+		<foreach collection="baseproperties" item="item" index="index"
+			separator=",">
+			${item}
+		</foreach>
+		from ${baseEntity}
+		<if test="joinEntity != null">
+			${joinEntity}
+		</if>
+		)a
+	</select>
+
+</mapper>
